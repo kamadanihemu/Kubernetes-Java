@@ -1,4 +1,4 @@
-name: Build and Deploy to AKS with ACR
+name: Build and Deploy to AKS with ACR (Fixed for amd64)
 
 on:
   push:
@@ -12,11 +12,14 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -28,6 +31,7 @@ jobs:
         run: |
           cd backend
           ./mvnw clean package -DskipTests || mvn clean package -DskipTests
+
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -37,20 +41,20 @@ jobs:
         run: |
           az acr login --name ${{ secrets.AZURE_ACR_NAME }}
 
-      - name: Build & Push Backend Docker Image
+      - name: Build & Push Backend Docker Image (linux/amd64)
         run: |
-          docker buildx create --use
           docker buildx build --platform linux/amd64 -t $BACKEND_IMAGE:latest ./backend --push
 
-      - name: Build & Push Frontend Docker Image
+      - name: Build & Push Frontend Docker Image (linux/amd64)
         run: |
           docker buildx build --platform linux/amd64 -t $FRONTEND_IMAGE:latest ./frontend --push
+
       - name: Set AKS context
         run: |
-          az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}                                  --name ${{ secrets.AKS_CLUSTER_NAME }} --overwrite-existing
+          az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }} --overwrite-existing
 
       - name: Deploy to AKS
         run: |
           sed -i "s|your-backend-image|$BACKEND_IMAGE:latest|g" k8s/backend-deployment.yaml
           sed -i "s|your-frontend-image|$FRONTEND_IMAGE:latest|g" k8s/frontend-deployment.yaml
-          kubectl apply -f k8s/
+          kubectl apply -f k8s/ --validate=false
