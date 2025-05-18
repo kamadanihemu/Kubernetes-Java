@@ -38,7 +38,7 @@ jobs:
 
       - name: Docker Login to ACR
         run: |
-          az acr login --name ${{ secrets.AZURE_ACR_LOGIN_SERVER }}
+          az acr login --name ${{ secrets.AZURE_ACR_NAME }}
 
       - name: Build & Push Backend Docker Image
         run: |
