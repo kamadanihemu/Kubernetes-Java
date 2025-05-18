@@ -39,14 +39,12 @@ jobs:
 
       - name: Build & Push Backend Docker Image
         run: |
-          docker build -t $BACKEND_IMAGE:latest ./backend
-          docker push $BACKEND_IMAGE:latest
+          docker buildx create --use
+          docker buildx build --platform linux/amd64 -t $BACKEND_IMAGE:latest ./backend --push
 
       - name: Build & Push Frontend Docker Image
         run: |
-          docker build -t $FRONTEND_IMAGE:latest ./frontend
-          docker push $FRONTEND_IMAGE:latest
-
+          docker buildx build --platform linux/amd64 -t $FRONTEND_IMAGE:latest ./frontend --push
       - name: Set AKS context
         run: |
           az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}                                  --name ${{ secrets.AKS_CLUSTER_NAME }} --overwrite-existing
