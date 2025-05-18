@@ -1,0 +1,61 @@
+name: Build and Deploy to AKS with ACR
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ACR_LOGIN_SERVER: ${{ secrets.AZURE_ACR_LOGIN_SERVER }}
+  BACKEND_IMAGE: ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/java-backend
+  FRONTEND_IMAGE: ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/java-frontend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build backend JAR
+        run: |
+          cd backend
+          ./mvnw clean package -DskipTests || mvn clean package -DskipTests
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Docker Login to ACR
+        run: |
+          az acr login --name ${{ secrets.AZURE_ACR_LOGIN_SERVER }}
+
+      - name: Build & Push Backend Docker Image
+        run: |
+          docker build -t $BACKEND_IMAGE:latest ./backend
+          docker push $BACKEND_IMAGE:latest
+
+      - name: Build & Push Frontend Docker Image
+        run: |
+          docker build -t $FRONTEND_IMAGE:latest ./frontend
+          docker push $FRONTEND_IMAGE:latest
+
+      - name: Set AKS context
+        run: |
+          az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}                                  --name ${{ secrets.AKS_CLUSTER_NAME }} --overwrite-existing
+
+      - name: Deploy to AKS
+        run: |
+          sed -i "s|your-backend-image|$BACKEND_IMAGE:latest|g" k8s/backend-deployment.yaml
+          sed -i "s|your-frontend-image|$FRONTEND_IMAGE:latest|g" k8s/frontend-deployment.yaml
+          kubectl apply -f k8s/

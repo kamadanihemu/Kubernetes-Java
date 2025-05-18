@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Java K8s App</title>
+    <script>
+        async function fetchMessage() {
+            const response = await fetch('/api/hello');
+            const message = await response.text();
+            document.getElementById('message').innerText = message;
+        }
+        window.onload = fetchMessage;
+    </script>
+</head>
+<body>
+    <h1 id="message">Loading...</h1>
+</body>
+</html>
