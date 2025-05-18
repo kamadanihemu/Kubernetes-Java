@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: your-backend-image
+        image: javaaks.azurecr.io/java-backend:latest
         ports:
         - containerPort: 8080
 ---
