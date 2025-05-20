@@ -30,7 +30,7 @@ jobs:
       - name: Build backend JAR
         run: |
                cd "C:\java-k8s-sample (1)\backend"
-               ./mvn clean package -DskipTests
+                mvn clean package -DskipTests
 
 
       - name: Azure Login
