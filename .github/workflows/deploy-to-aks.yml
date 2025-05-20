@@ -62,7 +62,12 @@ jobs:
           az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }} --overwrite-existing
 
       - name: Deploy to AKS
+      - name: Replace Backend image in YAML (Windows PowerShell)
         run: |
-          sed -i "s|your-backend-image|$BACKEND_IMAGE:latest|g" k8s/backend-deployment.yaml
-          sed -i "s|your-frontend-image|$FRONTEND_IMAGE:latest|g" k8s/frontend-deployment.yaml
-          kubectl apply -f k8s/ --validate=false
+           (Get-Content k8s/backend-deployment.yaml) -replace 'your-backend-image', "${env:BACKEND_IMAGE}:latest" | Set-Content k8s/backend-deployment.yaml
+              sed -i "s|your-frontend-image|$FRONTEND_IMAGE:latest|g" k8s/frontend-deployment.yaml
+                kubectl apply -f k8s/ --validate=false
+      - name: Replace frontend image in YAML (Windows PowerShell)
+        run: |
+          (Get-Content k8s/frontend-deployment.yaml) -replace 'your-frontend-image', "${env:FRONTEND_IMAGE}:latest" | Set-Content k8s/frontend-deployment.yaml
+
