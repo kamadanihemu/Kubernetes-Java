@@ -30,7 +30,7 @@ jobs:
       - name: Build backend JAR
         run: |
               cd C:\Windows\System32\cmd.exe
-              ./mvnw clean package -DskipTests || mvn clean package -DskipTests
+              ./mvnw clean package -DskipTests
 
 
       - name: Azure Login
