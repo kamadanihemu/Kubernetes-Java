@@ -42,13 +42,15 @@ jobs:
         run: |
           az acr login --name ${{ secrets.AZURE_ACR_NAME }}
 
-      - name: Build & Push Backend Docker Image (linux/amd64)
+      - name: Build & Push Backend Docker Image
         run: |
-          docker buildx build --platform linux/amd64 -t $BACKEND_IMAGE:latest ./backend --push
+          docker build -t $BACKEND_IMAGE:latest ./backend
+          docker push $BACKEND_IMAGE:latest
 
-      - name: Build & Push Frontend Docker Image (linux/amd64)
+      - name: Build & Push Frontend Docker Image
         run: |
-          docker buildx build --platform linux/amd64 -t $FRONTEND_IMAGE:latest ./frontend --push
+          docker build -t $FRONTEND_IMAGE:latest ./frontend
+          docker push $FRONTEND_IMAGE:latest
 
       - name: Set AKS context
         run: |
