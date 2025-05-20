@@ -29,8 +29,13 @@ jobs:
 
       - name: Build backend JAR
         run: |
-          cd backend
-          ./mvnw clean package -DskipTests || mvn clean package -DskipTests
+          if (Test-Path "./mvnw") {
+            ./mvnw clean package -DskipTests
+          } else {
+             mvn clean package -DskipTests
+          }
+          shell: pwsh
+
 
       - name: Azure Login
         uses: azure/login@v1
