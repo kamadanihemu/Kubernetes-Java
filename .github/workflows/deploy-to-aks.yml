@@ -69,4 +69,5 @@ jobs:
       - name: Replace frontend image in YAML (Windows PowerShell)
         run: |
           (Get-Content k8s/frontend-deployment.yaml) -replace 'your-frontend-image', "${env:FRONTEND_IMAGE}:latest" | Set-Content k8s/frontend-deployment.yaml
-           kubectl apply -f k8s/ --validate=false
+          kubectl apply -f k8s/ --validate=false
+
